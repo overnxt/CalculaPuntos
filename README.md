@@ -1,1 +1,2 @@
 # CalculaPuntos
+El inicio
