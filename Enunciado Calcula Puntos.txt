@@ -1,0 +1,40 @@
+Este es el enunciado para realizar el programa.
+
+La "Sanguijuela Testaruda" de pronto tenía más clientes. Sin embargo, don Pepe 
+notó que sus clientes entre ellos se retaban con los dardos. El que perdía de 
+un grupo de personas, tomaba la bebida "Caldo de Sapo" como castigo, esta era 
+una de las bebidas más conocidas y más baratas del lugar.
+Fue así como don Pepe tuvo una nueva idea: hacer un juego para que los clientes 
+jugaran entre ellos y compraran diferentes bebidas con mayor frecuencia.
+Don Pepe inventó las siguientes reglas:
+	• En cada ronda pueden participar de 2 hasta 8 jugadores.
+	• Cada jugador puede lanzar 5 veces el dardo por ronda.
+	• El juego consiste en 10 rondas.
+	• El jugador con menor cantidad de puntos es el elegido para comprar y tomar 
+	la bebida.
+	• Para elegir la bebida castigo, el jugador perdedor debe tirar el dardo una 
+	vez más Según los puntos que obtenga, el jugador debe consumir la bebida 
+	indicada en la tabla de bebidas.
+
+Tabla de Bebidas
+Puntos		Trago			Precio
+10		Caldo de Sapo		₡500
+5		Jugo de Ganso		₡800
+4		Polaco Blanco		₡1500
+3		Miguelino			₡2000
+2		María Sangrienta	₡2500
+1		Martin en las Rocas	₡3500
+
+Es por esta razón que se solicita un programa que realice lo siguiente:
+	• Preguntar el número de jugadores para jugar.
+	• Preguntar el nombre de cada jugador.
+	• Procesar un máximo de 10 de rondas.
+	• Indicar cual jugador pierde la ronda y cual bebida debe consumir, por 
+	ejemplo: "¡Mónica debe tomar un Jugo de Ganso!"
+	• El final del juego, debe aparecer la lista de los jugadores con la respectivas 
+	bebidas que consumió y el total a pagar por jugador.
+	• Imprimir el promedio de puntajes de todos los jugadores.
+
+	Consideraciones técnicas:
+	• Se deben utilizar arreglos para manejar los datos.
+	• El cálculo del jugador elegido o perdedor se debe hacer con una función.
