@@ -9,6 +9,14 @@
 /*  Segundo Cuatrimestre 2017   */
 /* **************************** */
 
+
+/*
+Faltantes
+
+    Generar la salida de la tabla de castigos
+    Generar reportes en juego grupal
+*/
+
 #include <iostream>
 using std::cout;
 using std::cin;
@@ -17,17 +25,25 @@ using std::endl;
 #include <cstdlib>
 using std::system;
 
+#include <string>
+using std::string;
+
+//Variables Globales
+int const tamanoArreglo2 = 8;
 
 //Prototipos
 void menu( );//Para el menu de inicio
 void mensajesError( const int );//Para el menejo de los errores
 void centraPantalla( const int );//Para el centrado en pantalla
 void juegoIndividual( int &, int &, int &, int & );//Para la opcion del juego individual
-void ingresoPuntosIndividual( int &, int & );//Para el ingreso de puntos por el cliente
+void ingresoPuntos( int &, const int &, const string & );//Para el ingreso de puntos por el cliente
 void validaRegaliasIndividual( const int & );//Para la verificacion si se gano regalias
-void juegoGrupal( );//Para la opcion del juego grupal
+void juegoGrupal( string [ ] [ tamanoArreglo2 ], int &, int [ ][ tamanoArreglo2 ] );//Para la opcion del juego grupal
 void validaContinuar( char & );//Para procesar si se desea continuar ingresando juegos
 void estadisticasGenerales( const int &, const int & );//Para presentar las estadisticas de juego
+void ingresaNombresJugadoresGrupal( const int &, string [ ][ tamanoArreglo2 ], const int & );//Para ingresar los nombres de los jugadores al arreglo
+void ingresoPuntosArreglo( const int &, const int &, int [ ][ tamanoArreglo2 ], string [ ][ tamanoArreglo2 ] );//Para ingresar el puntaje al arreglo
+void ordenaArreglos( const int &, const int &, string [ ][ tamanoArreglo2 ], int [ ][ tamanoArreglo2 ] );//Para ordenar el arreglo
 
 int main()
 {
@@ -47,16 +63,16 @@ int main()
 void menu( )
 {
     //Variables para el juego individual
-    int contadorJugadoresIndividual = 0;//Contador de jugadores del d�a
+    int contadorJugadoresIndividual = 0;//Contador de jugadores del día
 	int puntosTotalesJugadorIndividual = 0; //Contador de puntos obtenidos por jugador
-	int puntosTotalesIndividual = 0; //Contador de puntos totales por todos los jugadores del d�a
+	int puntosTotalesIndividual = 0; //Contador de puntos totales por todos los jugadores del día
 	int puntosTurnoJugadorIndividual = 0; //Variable de puntos obtenidos en el turno y validar el numero
 
     //Variables para el juego grupal
-	int const tArreglo1 = 10;
-	int const tArreglo2 = 8;
-    char arregloNombresJugadores[ tArreglo1 ];
-    int arregloPuntosJugadores[ tArreglo1 ][ tArreglo2 ];
+	int const tamanoArreglo1 = 10;
+	string arregloNombresJugadores[ tamanoArreglo1 ][ tamanoArreglo2 ] = { "\0" };//Arreglo para los nombres
+    int arregloPuntosJugadores[ tamanoArreglo1 ][ tamanoArreglo2 ] = { 0 };//Arreglo para el puntaje
+    int rondasJugadas = 0;//cuenta las rodas que se hayan jugado
 
     int opcionMenu = 0;
 
@@ -87,7 +103,7 @@ void menu( )
                     juegoIndividual( contadorJugadoresIndividual, puntosTotalesJugadorIndividual, puntosTurnoJugadorIndividual, puntosTotalesIndividual );
                     break;
                 case 2:
-                    juegoGrupal( );
+                    juegoGrupal( arregloNombresJugadores, rondasJugadas, arregloPuntosJugadores );
                     break;
                 case 3:
                     estadisticasGenerales( contadorJugadoresIndividual, puntosTotalesIndividual );
@@ -143,7 +159,7 @@ void mensajesError( const int codError )
             break;
 
         case 4://Mensaje de error para el juego grupal con la cantidad de jugadores que se pueden ingresar
-            cout << "Solo pueden jugar de 2 a 8 jugadores";
+            cout << "Solo pueden jugar de 2 a 8 jugadores por ronda";
             break;
     }
 
@@ -156,7 +172,7 @@ void centraPantalla( const int codPantalla )
 {
     int a = 0;
 
-    switch ( codPantalla )
+    switch( codPantalla )
     {
         case 0:
                 for ( ; a <= 5; a++ )//Para bajar la salida 5 lineas
@@ -172,7 +188,7 @@ void centraPantalla( const int codPantalla )
                 break;
 
         case 10:
-                system( "clear" );//para limpiar la pantalla
+                system( "cls" );//para limpiar la pantalla
                 break;
     }
 }
@@ -181,13 +197,14 @@ void centraPantalla( const int codPantalla )
 void juegoIndividual( int &ctJugDia, int &ptTotJugador, int &ptTurJugador, int &ptTotDia )
 {
     char rondas = 's';
+    string name = "Individual";
 
 	while ( rondas == 's' )
 	{
 		ctJugDia += 1;
 		ptTotJugador = 0;
 
-        ingresoPuntosIndividual( ptTotJugador, ptTurJugador );
+        ingresoPuntos( ptTotJugador, ctJugDia, name );
 
         validaRegaliasIndividual( ptTotJugador );
 
@@ -197,28 +214,44 @@ void juegoIndividual( int &ctJugDia, int &ptTotJugador, int &ptTurJugador, int &
 	}
 }
 
-//Para ingresar los puntos en el juego individual
-void ingresoPuntosIndividual( int &punToJu, int &punTurJu )
+//Para ingresar los puntos en el juego ganadas por jugador
+void ingresoPuntos( int &punToJu, const int &rondasJ, const string &nombre )
 {
-    int contadorTurnosJugador = 0; //Contador de turnos en juego
+    int contadorTurnosJugador = 1; //Contador de turnos en juego
+    int puntosTurnoJugador = 0;
 
-    while ( contadorTurnosJugador != 5 )
+    while ( contadorTurnosJugador <= 6 )
     {
         centraPantalla( 10 );
+        cout << "RONDA #" << rondasJ;
+        cout << "\nJugador: " << nombre;
         centraPantalla( 0 );
         centraPantalla( 3 );
 		cout << "Conteo actual: " << punToJu;
         centraPantalla( 0 );
         centraPantalla( 3 );
-        cout << "Digite el puntaje: " ;
-		cin >> punTurJu;
-		// Valida valores en los puntos, se agrega 0 por si no se obtienen puntos en el juego
-		if ( ( ( punTurJu > 5 ) || ( punTurJu < 0 ) )&& ( punTurJu != 10 ) )
-			    mensajesError( 1 );
+
+        if ( contadorTurnosJugador == 6)
+        {
+            contadorTurnosJugador = 7;
+            cout << "RONDA TERMINADA\n";
+            centraPantalla( 3 );
+            cout << "ENTER PARA CONTINUAR";
+            cin.get();
+            cin.get();
+        }
         else
-		{
-            contadorTurnosJugador += 1;
-            punToJu += punTurJu;
+        {
+            cout << "Digite el puntaje: " ;
+            cin >> puntosTurnoJugador;
+            // Valida valores en los puntos, se agrega 0 por si no se obtienen puntos en el juego
+            if ( ( ( puntosTurnoJugador > 5 ) || ( puntosTurnoJugador < 0 ) )&& ( puntosTurnoJugador != 10 ) )
+			    mensajesError( 1 );
+            else
+            {
+                contadorTurnosJugador++;
+                punToJu += puntosTurnoJugador;
+            }
         }
     }
 }
@@ -232,6 +265,7 @@ void validaRegaliasIndividual( const int &ptJugador )
     cout << ( ptJugador >= 30 ? "GANA " : "NO Gana " ) << "una cortesia\n\n";
     centraPantalla( 3 );
     cout << "Puntos obtenidos: " << ptJugador;
+    cin.get();
 }
 
 //Para seleccionar si desea continuar jugando
@@ -239,60 +273,160 @@ void validaContinuar( char &jContinua )
 {
     do
     {
+        centraPantalla( 10 );
         centraPantalla( 0 );
         centraPantalla( 1 );
-        cout << "Desea ingresar mas juegos \"s\" (continua) \"n\" (salir): ";
+        cout << "Desea ingresar mas rondas \"s\" (continua) \"n\" (salir): ";
         cin >> jContinua;
         jContinua = tolower( jContinua );
 
         if ( jContinua != 's' && jContinua != 'n' )
         {
             mensajesError( 2 );
-
-            centraPantalla( 10 );
         }
     }while ( jContinua != 's' && jContinua != 'n');
 }
 
 //Para el juego grupal
-void juegoGrupal( )
+void juegoGrupal( string arrgNombJugadores[ ][ tamanoArreglo2 ], int &cuentaRondas, int arrgPuntJugadores[ ][ tamanoArreglo2 ] )
 {
-    int jugadores = 0;
-
+    int cantJugadores = 0;
     char juegos = 's';
 
 	while ( juegos == 's' )
 	{
-        do
+        cuentaRondas++;
+
+        if ( cuentaRondas < 10 )
+        {
+            do
+            {
+                centraPantalla( 10 );
+                cout << "RONDA #" << cuentaRondas;
+                centraPantalla( 0 );
+                centraPantalla( 1 );
+                cout << "Cuantos personas van a jugar en esta ronda: ";
+                cin >> cantJugadores;
+
+                if ( cantJugadores < 2 || cantJugadores > 8 )
+                    mensajesError( 4 );
+                else
+                {
+                    ingresaNombresJugadoresGrupal( cantJugadores, arrgNombJugadores, cuentaRondas );
+                    ingresoPuntosArreglo( cuentaRondas, cantJugadores, arrgPuntJugadores, arrgNombJugadores );
+                    ordenaArreglos( cuentaRondas, cantJugadores, arrgNombJugadores, arrgPuntJugadores );
+                }
+
+            }while ( cantJugadores < 2 || cantJugadores > 8);
+
+            validaContinuar( juegos );
+        }
+        else
         {
             centraPantalla( 10 );
             centraPantalla( 0 );
             centraPantalla( 1 );
-            cout << "Cuantos personas van a jugar: ";
-            cin >> jugadores;
 
-            if ( jugadores < 2 || jugadores > 8 )
-                mensajesError( 4 );
-            //else
+            cout << "Ha alcanzado el numero máximo de rondas (10)";
+            cin.get();
+            cin.get();
 
-        }while ( jugadores < 2 || jugadores > 8);
-
-        validaContinuar( juegos );
+            juegos = 'n';
+        }
 	}
 }
 
 //Para ingresar los nombres de los jugadores
-void ingresaNombresJugadoresGrupal()
+void ingresaNombresJugadoresGrupal( const int &cantJug, string arrayNombres[ ][ tamanoArreglo2 ], const int &ronda )
 {
-
+    for ( int i = 0; i < cantJug; i ++ )
+    {
+        centraPantalla( 10 );
+        cout << "RONDA #" << ronda;
+        centraPantalla( 0 );
+        centraPantalla( 1 );
+        cout << "Digite el nombre del jugador " << ( i + 1 ) << ": ";
+        cin >> arrayNombres[ ( ronda - 1 ) ][ i ];
+    }
 }
 
+//Para ingresar los puntos al arreglo
+void ingresoPuntosArreglo( const int &nRonda, const int &cantJugadores, int arrayPuntos[ ][ tamanoArreglo2 ], string arrayNombres[ ][ tamanoArreglo2 ] )
+{
+    for ( int i = 0; i < cantJugadores; i++ )
+    {
+       ingresoPuntos( arrayPuntos[ ( nRonda - 1 ) ][ i ], nRonda, arrayNombres[ ( nRonda - 1 ) ][ i ]);
+    }
+}
 
-/*
-Estado actual de las etapas:
+//Para conocer la bebida que debe tomar como castigo
+void tablaCastigos( const string &nombreCastigado )
+{
+    int puntajeCastigo = 0;
+    int continua = 0;
 
-Ingresar nombres para juego grupal
-Ingresar los puntos para juego grupal
-Generar la tabla de castigos
-Generar reportes en juego grupal
-*/
+    while ( continua == 0 )
+    {
+        centraPantalla( 10 );
+        centraPantalla( 0 );
+        centraPantalla( 3 );
+        cout << "El jugador castigado es: " << nombreCastigado << endl;
+        centraPantalla( 0 );
+        cout << "Digite el puntaje para conocer el castigo: " ;
+        cin >> puntajeCastigo;
+
+        if ( ( ( puntajeCastigo > 5 ) || ( puntajeCastigo < 0 ) )&& ( puntajeCastigo != 10 ) )
+            mensajesError( 1 );
+        else
+        {
+            continua = 1;
+            centraPantalla( 0 );
+            cout << "La bebida que debe tomar es: ";
+        }
+    }
+
+    switch( puntajeCastigo )
+    {
+        case 1:
+            cout << "Martin en las Rocas";
+            break;
+        case 2:
+            cout << "María Sangrienta";
+            break;
+        case 3:
+            cout << "Miguelino";
+            break;
+        case 4:
+            cout << "Polaco Blanco";
+            break;
+        case 5:
+            cout << "Jugo de Ganso";
+            break;
+        case 10:
+            cout << "Caldo de Sapo";
+            break;
+    }
+}
+
+void ordenaArreglos( const int &rondaNumero, const int &cantiJuga, string arrayName[ ][ tamanoArreglo2 ], int arrayPoints[ ][ tamanoArreglo2 ] )
+{
+    string pasaNombre = " ";
+    int pasaPuntos = 0;
+    int pasadas = ( cantiJuga - 1 );
+    int filas = ( rondaNumero - 1 );
+
+    for ( int a = 1; a < ( cantiJuga ); a++ )
+        for ( int b = 0; b <= ( cantiJuga - 2 ); b++ )
+        {
+            if ( arrayPoints[ filas ][ b ] > arrayPoints[ filas ][ b + 1 ] )
+            {
+                pasaNombre = arrayName[ filas ][ b ];
+                arrayName[ filas ][ ( b ) ] = arrayName[ filas ][ ( b + 1) ];
+                arrayName[ filas ][ ( b + 1) ] = pasaNombre;
+
+                pasaPuntos = arrayPoints[ filas ][ b ];
+                arrayPoints[ filas ][ ( b ) ] = arrayPoints[ filas ][ ( b + 1) ];
+                arrayPoints[ filas ][ ( b + 1) ] = pasaPuntos;
+            }
+        }
+}
